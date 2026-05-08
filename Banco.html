@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+     <link rel="shortcut icon" href="bruja.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banco - Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0; /* Fallback */
+            background-image: url('Sprites/cajaF.jpg'); /* Agrega aquí la URL de tu imagen de fondo */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .login-container {
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            text-align: center;
+            min-width: 400px;
+        }
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        input {
+            padding: 1rem;
+            margin: 1rem 0;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 1.2rem;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+        }
+        input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        button {
+            padding: 1rem 2rem;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin-top: 1rem;
+        }
+        button:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+            transition: all 0.2s;
+        }
+        @media (max-width: 767px) {
+            .login-container {
+                width: 90vw;
+                min-width: auto;
+                padding: 2rem;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+            input {
+                font-size: 1rem;
+                padding: 0.8rem;
+            }
+            button {
+                font-size: 1rem;
+                padding: 0.8rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+      <!-- Si estás leyendo esto, mandale una captura a Fran por wsp -->
+    <div class="login-container">
+        <h2>Introduce el Código de tu Equipo</h2>
+        <form id="loginForm">
+            <input type="text" id="codigo" placeholder="Código" required>
+            <br>
+            <button type="submit">Entrar</button>
+        </form>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script>
+        <!-- Vas a hacer 50 burpees -->
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const input = document.getElementById('codigo').value.trim();
+            const hash = CryptoJS.SHA256(input).toString();
+            if (hash === '19e639b064bdb018bbf393d0f751e6e5e9934f70394531ab3f617513529ab264') {
+                window.location.href = 'codigo1.html';
+            } else if (hash === 'bb76dc3c076cd8e06b6b727b1913eff38a71ffc30bd6a4916e52fd39798ec81f') {
+                window.location.href = 'codigo2.html';
+            } else if (hash === '11b6d5d62c0c8d756f35f780fd07f409e8bbd291fa433349036c3bcb85ce4e32') {
+                window.location.href = 'codigo3.html';
+            } else if (hash === 'b88c399bc0698b809333f91ee7380e28c85b5db1d2fa242d2c647bbe2ca8beca') {
+                window.location.href = 'codigo4.html';
+            } else if (hash === '02176ff993f4b2809f28d2ee81885182edd67c3eb0ed10ecdcb87cde5aecdd09') {
+                window.location.href = 'codigo5.html';
+            } else {
+                alert('Código incorrecto');
+            }
+        });
+    </script>
+</body>
+</html>
