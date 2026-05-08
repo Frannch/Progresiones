@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+     <link rel="shortcut icon" href="bruja.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billetera Virtual Guaraníes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #00d6d6;
+            background-image: url(''); /* Agrega aquí la URL de tu imagen de fondo */
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .wallet-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .balance {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #28a745;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #dc3545;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin-top: 20px;
+        }
+        .back-btn:hover {
+            background: #c82333;
+        }
+        @media (min-width: 768px) {
+            .wallet-container {
+                max-width: 800px;
+                padding: 30px;
+            }
+            .balance {
+                font-size: 2.5rem;
+            }
+            button, .back-btn {
+                font-size: 1.2rem;
+                padding: 12px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wallet-container">
+        <h1>FranDólares</h1>
+        
+        <!-- Saldo -->
+        <div class="balance" id="balance">----</div>
+        <button id="toggleBtn">Mostrar Saldo</button>
+        
+        <a href="index.html" class="back-btn">Volver al Inicio</a>
+    </div>
+    
+    <script>
+        let saldoVisible = false;
+        const saldoReal = 0; // Cambia este valor para personalizar el saldo inicial
+        const balanceEl = document.getElementById('balance');
+        const toggleBtn = document.getElementById('toggleBtn');
+        
+        toggleBtn.addEventListener('click', function() {
+            if (saldoVisible) {
+                balanceEl.textContent = '----';
+                toggleBtn.textContent = 'Mostrar Saldo';
+            } else {
+                balanceEl.textContent = '$' + saldoReal;
+                toggleBtn.textContent = 'Ocultar Saldo';
+            }
+            saldoVisible = !saldoVisible;
+        });
+    </script>
+</body>
+</html>

@@ -21,9 +21,9 @@ const categories = [
   {
     id: 'planificacion',
     title: 'Salud y Bienestar',
-    subtitle: 'texto de ejemplo',
+    subtitle: '',
     accent: '#181cec',
-    description: 'texto de ejemplo',
+    description: '',
     items: buildCategoryCards({
       label: 'Salud',
       baseFolder: 'Salud',
@@ -33,9 +33,9 @@ const categories = [
   {
     id: 'contenido',
     title: 'Paz y Desarrollo',
-    subtitle: 'texto de ejemplo2',
+    subtitle: '',
     accent: '#592cd3',
-    description: 'otro texto de ejemplo.',
+    description: '',
     items: buildCategoryCards({
       label: 'Paz',
       baseFolder: 'Paz',
@@ -45,9 +45,9 @@ const categories = [
   {
     id: 'validacion',
     title: 'Ambiente',
-    subtitle: '---',
+    subtitle: '',
     accent: '#3ba326',
-    description: '---',
+    description: '',
     items: buildCategoryCards({
       label: 'Amb',
       baseFolder: 'Amb',
@@ -57,9 +57,9 @@ const categories = [
   {
     id: 'entrega',
     title: 'Habilidades Para La Vida',
-    subtitle: 'ejemplo',
+    subtitle: '',
     accent: '#f0821c',
-    description: 'ejemplo de descripción.',
+    description: '',
     items: buildCategoryCards({
       label: 'Hab',
       baseFolder: 'Hab',
