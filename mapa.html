@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="shortcut icon" href="bruja.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>Mapa del Viaje - El Señor de los Anillos</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        }
+
+        .map-container {
+            position: relative;
+            background: rgba(0, 0, 0, 0.3);
+            background-image: url('Sprites/mapa.webp'); /* CAMBIAR AQUÍ: ruta de tu imagen del mapa */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            border: 2px solid #d4a574;
+            border-radius: 10px;
+            padding: 40px;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .nodes-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
+
+        .node {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 20;
+        }
+
+        .node.undiscovered {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .node-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: 3px solid #d4a574;
+            background: rgba(212, 165, 116, 0.2);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(212, 165, 116, 0.5);
+            overflow: hidden;
+        }
+
+        .node-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .node.discovered .node-circle {
+            background: rgba(212, 165, 116, 0.8);
+            box-shadow: 0 0 30px rgba(212, 165, 116, 1);
+        }
+
+        .node-label {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            max-width: 80px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
+            opacity: 1;
+            transition: opacity 0.3s ease;
+            color: #fff;
+        }
+
+        .node:hover .node-circle {
+            transform: scale(1.2);
+        }
+
+        .cloud {
+            position: absolute;
+            opacity: 0.95;
+            transition: opacity 0.3s ease;
+            filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));
+        }
+
+        .node.discovered .cloud {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ El Viaje del Anillo</h1>
+        
+        <div class="map-container">
+            <div class="nodes-container" id="nodesContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de nodos
+        const nodos = {
+            comillo: {
+                nombre: 'La Comarca',
+                x: 240,
+                y: 10,
+                emoji: '🏡',
+                img: 'Sprites/insignias/Comarca.png',
+                descubierto: true
+            },
+            bree: {
+                nombre: 'Bree',
+                x: 320,
+                y: 20,
+                emoji: '🏘️',
+                img: 'Sprites/insignias/Bree.png',
+                descubierto: true
+            },
+            Bruinen: {
+                nombre: 'Bruinen',
+                x: 430,
+                y: 0,
+                emoji: '🏰',
+                img: 'Sprites/insignias/Bruinen.png',
+                descubierto: true
+            },
+            bpuerta: {
+                nombre: 'Monte del Destino',
+                x: 800,
+                y: 360,
+                emoji: '⛏️',
+                img: 'Sprites/insignias/MonteDelDestino.png',
+                descubierto: true
+            },
+            Rivendell: {
+                nombre: 'Rivendell',
+                x: 500,
+                y: 20,
+                emoji: '🌳',
+                img: 'Sprites/insignias/Rivendell.png',
+                descubierto: true
+            },
+            Caradhras: {
+                nombre: 'Caradhras',
+                x: 530,
+                y: 120,
+                emoji: '⛰️',
+                img: 'Sprites/insignias/Caradhras.png',
+                descubierto: true
+            },
+            Moria : {
+                nombre: 'Minas Moria',
+                x: 460,
+                y: 160,
+                emoji: '⛏️',
+                img: 'Sprites/insignias/MinasMoria.png',
+                descubierto: true
+            },
+            amon: {
+                nombre: 'Amon Hen',
+                x: 640,
+                y: 340,
+                emoji: '🐎',
+                img: 'Sprites/insignias/AmonHen.png',
+                descubierto: true
+            },
+            Tunels: {
+                nombre: 'Shelob',
+                x: 720,
+                y: 340,
+                emoji: '🏯',
+                img: 'Sprites/insignias/Shelob.png',
+                descubierto: true
+            },
+            helm: {
+                nombre: 'Abismo de Helm',
+                x: 480,
+                y: 300,
+                emoji: '🌋',
+                img: 'Sprites/insignias/AbismoDeHelm.png',
+                descubierto: true
+            },
+            minasT: {
+                nombre: 'Minas Tirith',
+                x: 680,
+                y: 430,
+                emoji: '🌋',
+                img: 'Sprites/insignias/MinasTirith.png',
+                descubierto: true
+            }
+        };
+
+        // Inicializar el mapa
+        function inicializarMapa() {
+            const container = document.getElementById('nodesContainer');
+
+            // Limpiar
+            container.innerHTML = '';
+
+            // Crear nodos
+            Object.entries(nodos).forEach(([id, nodo]) => {
+                const nodeEl = document.createElement('div');
+                nodeEl.className = `node ${nodo.descubierto ? 'discovered' : 'undiscovered'}`;
+                nodeEl.id = `node-${id}`;
+                nodeEl.style.left = nodo.x + 'px';
+                nodeEl.style.top = nodo.y + 'px';
+                nodeEl.innerHTML = `
+                    <div class="node-circle">
+                        ${nodo.img ? `<img src="${nodo.img}" alt="${nodo.nombre}"/>` : nodo.emoji}
+                    </div>
+                    <svg class="cloud" width="80" height="60" viewBox="0 0 80 60">
+                        <path d="M 20 40 Q 10 40 10 30 Q 10 15 20 15 Q 25 5 35 5 Q 50 5 55 20 Q 70 20 70 30 Q 70 40 60 40 Z" fill="rgba(100, 100, 100, 0.9)"/>
+                    </svg>
+                    <div class="node-label">${nodo.nombre}</div>
+                `;
+                container.appendChild(nodeEl);
+            });
+        }
+
+        function guardarProgreso() {
+            const progreso = {};
+            Object.entries(nodos).forEach(([id, nodo]) => {
+                progreso[id] = nodo.descubierto;
+            });
+            localStorage.setItem('mapaProgreso', JSON.stringify(progreso));
+        }
+
+        function cargarProgreso() {
+            const progreso = localStorage.getItem('mapaProgreso');
+            if (progreso) {
+                const estado = JSON.parse(progreso);
+                Object.entries(estado).forEach(([id, descubierto]) => {
+                    if (nodos[id]) {
+                        nodos[id].descubierto = descubierto;
+                    }
+                });
+            }
+        }
+
+        // Iniciar
+        cargarProgreso();
+        inicializarMapa();
+    </script>
+</body>
+</html>
