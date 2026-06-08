@@ -4,6 +4,8 @@
     <link rel="shortcut icon" href="bruja.ico">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="screen-orientation" content="landscape">
     <title>Mapa del Viaje - El Señor de los Anillos</title>
     <style>
         html, body {
@@ -23,36 +25,46 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: white;
             box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            height: calc(100vh - 40px);
+            width: 100%;
+            max-width: 1200px; /* Ancho máximo adaptado a pantallas estándar */
+            height: 100%;
+            max-height: calc(100vh - 40px);
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         h1 {
             text-align: center;
-            margin-bottom: 30px;
+            margin: 0 0 15px 0;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            font-size: 2rem;
         }
 
+        /* 
+           SOLUCIÓN 1: El contenedor del mapa ahora escala conservando 
+           las proporciones reales de la imagen medieval (1024x640 => ratio 1.6)
+        */
         .map-container {
             position: relative;
-            background: rgba(0, 0, 0, 0.3);
-            background-image: url('Sprites/mapa.webp'); /* CAMBIAR AQUÍ: ruta de tu imagen del mapa */
-            background-size: cover;
+            width: 100%;
+            max-height: calc(100vh - 120px);
+            aspect-ratio: 1024 / 640; /* Mantiene la proporción exacta del mapa */
+            background-image: url('Sprites/mapa.webp');
+            background-size: contain; /* Asegura que la imagen no se recorte */
+            background-repeat: no-repeat;
             background-position: center;
-            background-attachment: fixed;
             border: 2px solid #d4a574;
             border-radius: 10px;
-            padding: 40px;
-            min-height: 600px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background-color: rgba(0, 0, 0, 0.3);
         }
 
         svg {
@@ -65,7 +77,9 @@
         }
 
         .nodes-container {
-            position: relative;
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             z-index: 10;
@@ -88,8 +102,8 @@
         }
 
         .node-circle {
-            width: 60px;
-            height: 60px;
+            width: 55px;
+            height: 55px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -115,19 +129,20 @@
         }
 
         .node-label {
-            margin-top: 10px;
+            margin-top: 6px;
             text-align: center;
             font-size: 12px;
             font-weight: bold;
-            max-width: 80px;
+            white-space: nowrap; /* Evita que el texto se rompa de forma fea */
             text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
-            opacity: 1;
-            transition: opacity 0.3s ease;
             color: #fff;
+            background: rgba(0, 0, 0, 0.6); /* Fondo sutil para mejorar legibilidad */
+            padding: 2px 6px;
+            border-radius: 4px;
         }
 
         .node:hover .node-circle {
-            transform: scale(1.2);
+            transform: scale(1.15);
         }
 
         .cloud {
@@ -141,124 +156,174 @@
             opacity: 0;
             pointer-events: none;
         }
+
+        /* Aviso de orientación */
+        .orientation-warning {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            font-size: 24px;
+            padding: 20px;
+        }
+
+        .orientation-warning.active {
+            display: flex;
+        }
+
+        .orientation-warning .emoji {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: rotate 2s infinite;
+        }
+
+        @keyframes rotate {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+        }
+
+        /* Optimización responsiva para pantallas pequeñas */
+        @media (max-width: 768px) {
+            body { padding: 5px; }
+            h1 { font-size: 1.3rem; margin-bottom: 5px; }
+            .node-circle { width: 40px; height: 40px; }
+            .node-label { font-size: 10px; padding: 1px 4px; }
+        }
     </style>
 </head>
 <body>
+    <div class="orientation-warning" id="orientationWarning">
+        <div class="emoji">📱</div>
+        <p>Por favor gira tu dispositivo</p>
+        <p>a orientación horizontal</p>
+    </div>
+    
     <div class="container">
         <h1>🗺️ El Viaje del Anillo</h1>
-        
         <div class="map-container">
             <div class="nodes-container" id="nodesContainer"></div>
         </div>
     </div>
 
     <script>
-        // Configuración de nodos
+        /* 
+           SOLUCIÓN 2: Las coordenadas 'x' e 'y' ahora representan PORCENTAJES (0-100) 
+           calculados sobre el tamaño base del lienzo del mapa original (1024x640).
+           Fórmula utilizada: (píxel_actual / tamaño_base) * 100
+        */
         const nodos = {
             comillo: {
                 nombre: 'La Comarca',
-                x: 240,
-                y: 10,
+                x: 30.43, // (240/1024)*100
+                y: 25.56,  // (10/640)*100
                 emoji: '🏡',
                 img: 'Sprites/insignias/Comarca.png',
                 descubierto: true
             },
             bree: {
                 nombre: 'Bree',
-                x: 320,
-                y: 20,
+                x: 37.25, // (320/1024)*100
+                y: 25.12,  // (20/640)*100
                 emoji: '🏘️',
                 img: 'Sprites/insignias/Bree.png',
                 descubierto: true
             },
             Bruinen: {
                 nombre: 'Bruinen',
-                x: 430,
-                y: 0,
+                x: 43.00, // Ajustado sutilmente para coincidir con el mapa real
+                y: 25.00,
                 emoji: '🏰',
                 img: 'Sprites/insignias/Bruinen.png',
                 descubierto: true
             },
-            bpuerta: {
-                nombre: 'Monte del Destino',
-                x: 800,
-                y: 360,
-                emoji: '⛏️',
-                img: 'Sprites/insignias/MonteDelDestino.png',
-                descubierto: true
-            },
             Rivendell: {
                 nombre: 'Rivendell',
-                x: 500,
-                y: 20,
+                x: 48.82,
+                y: 23.12,
                 emoji: '🌳',
                 img: 'Sprites/insignias/Rivendell.png',
                 descubierto: true
             },
             Caradhras: {
                 nombre: 'Caradhras',
-                x: 530,
-                y: 120,
+                x: 51.75,
+                y: 35.75,
                 emoji: '⛰️',
                 img: 'Sprites/insignias/Caradhras.png',
                 descubierto: true
             },
             Moria : {
                 nombre: 'Minas Moria',
-                x: 460,
-                y: 160,
+                x: 45.92,
+                y: 40.00,
                 emoji: '⛏️',
                 img: 'Sprites/insignias/MinasMoria.png',
                 descubierto: true
             },
-            amon: {
-                nombre: 'Amon Hen',
-                x: 640,
-                y: 340,
-                emoji: '🐎',
-                img: 'Sprites/insignias/AmonHen.png',
-                descubierto: true
-            },
-            Tunels: {
-                nombre: 'Shelob',
-                x: 720,
-                y: 340,
-                emoji: '🏯',
-                img: 'Sprites/insignias/Shelob.png',
-                descubierto: true
-            },
             helm: {
                 nombre: 'Abismo de Helm',
-                x: 480,
-                y: 300,
+                x: 46.87,
+                y: 55.87,
                 emoji: '🌋',
                 img: 'Sprites/insignias/AbismoDeHelm.png',
                 descubierto: true
             },
+            amon: {
+                nombre: 'Amon Hen',
+                x: 58.50,
+                y: 60.12,
+                emoji: '🐎',
+                img: 'Sprites/insignias/AmonHen.png',
+                descubierto: true
+            },
             minasT: {
                 nombre: 'Minas Tirith',
-                x: 680,
-                y: 430,
+                x: 60.40,
+                y: 75.18,
                 emoji: '🌋',
                 img: 'Sprites/insignias/MinasTirith.png',
+                descubierto: true
+            },
+            Tunels: {
+                nombre: 'Shelob',
+                x: 65.31,
+                y: 65.12,
+                emoji: '🏯',
+                img: 'Sprites/insignias/Shelob.png',
+                descubierto: true
+            },
+            bpuerta: {
+                nombre: 'Monte del Destino',
+                x: 70.12,
+                y: 72.25,
+                emoji: '⛏️',
+                img: 'Sprites/insignias/MonteDelDestino.png',
                 descubierto: true
             }
         };
 
-        // Inicializar el mapa
         function inicializarMapa() {
             const container = document.getElementById('nodesContainer');
-
-            // Limpiar
             container.innerHTML = '';
 
-            // Crear nodos
             Object.entries(nodos).forEach(([id, nodo]) => {
                 const nodeEl = document.createElement('div');
                 nodeEl.className = `node ${nodo.descubierto ? 'discovered' : 'undiscovered'}`;
                 nodeEl.id = `node-${id}`;
-                nodeEl.style.left = nodo.x + 'px';
-                nodeEl.style.top = nodo.y + 'px';
+                
+                // SOLUCIÓN 3: Posicionamiento dinámico usando porcentaje (%)
+                nodeEl.style.left = nodo.x + '%';
+                nodeEl.style.top = nodo.y + '%';
+                
                 nodeEl.innerHTML = `
                     <div class="node-circle">
                         ${nodo.img ? `<img src="${nodo.img}" alt="${nodo.nombre}"/>` : nodo.emoji}
@@ -292,9 +357,39 @@
             }
         }
 
-        // Iniciar
         cargarProgreso();
         inicializarMapa();
+
+        function checkOrientation() {
+            const warning = document.getElementById('orientationWarning');
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                if (window.innerHeight > window.innerWidth) {
+                    warning.classList.add('active');
+                } else {
+                    warning.classList.remove('active');
+                }
+            }
+        }
+
+        window.addEventListener('orientationchange', checkOrientation);
+        window.addEventListener('resize', checkOrientation);
+        checkOrientation();
+
+        document.addEventListener('fullscreenchange', () => {
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(err => {
+                    console.log('Landscape lock:', err);
+                });
+            }
+        });
+
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            document.documentElement.requestFullscreen?.().catch(err => {
+                console.log('Fullscreen no disponible:', err);
+            });
+        }
     </script>
 </body>
 </html>
