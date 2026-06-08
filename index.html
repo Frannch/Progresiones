@@ -111,7 +111,7 @@
     <div class="container">
         
         <a href="Banco.html"><button class="button red">Banco</button></a>
-        <a href=""><button class="button green" id="unblockBtn" disabled>???</button></a>
+        <a href=""><button class="button green" id="unblockBtn" disabled>Mapa</button></a>
         <a href="inicio.html"><button class="button blue">Tarjetas de Progesión</button></a>
     </div>
 
@@ -124,7 +124,7 @@
             if (ahora >= desbloqueo) {
                 // La fecha ha llegado, desbloquear el botón
                 botton.disabled = false;
-                botton.textContent = '¡Desbloqueado!';
+                botton.textContent = 'Mapa';
                 botton.parentElement.href = '#'; // Cambiar href según sea necesario
             } else {
                 // Calcular tiempo restante
