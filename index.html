@@ -77,6 +77,26 @@
         .button:hover::before {
             filter: brightness(0.6);
         }
+        .green {
+            background-color: #4CAF50;
+        }
+        .button.green::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #4CAF50;
+            z-index: -1;
+        }
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .button:disabled:hover::before {
+            filter: brightness(0.4);
+        }
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -89,8 +109,37 @@
 </head>
 <body>
     <div class="container">
-        <a href="inicio.html"><button class="button blue">Tarjetas de Progesión</button></a>
+        
         <a href="Banco.html"><button class="button red">Banco</button></a>
+        <a href=""><button class="button green" id="unblockBtn" disabled>???</button></a>
+        <a href="inicio.html"><button class="button blue">Tarjetas de Progesión</button></a>
     </div>
-</body>
+
+    <script>
+        function actualizarTemporizador() {
+            const botton = document.getElementById('unblockBtn');
+            const ahora = new Date();
+            const desbloqueo = new Date(2026, 6, 4, 0, 0, 0); // 4 de julio de 2026
+            
+            if (ahora >= desbloqueo) {
+                // La fecha ha llegado, desbloquear el botón
+                botton.disabled = false;
+                botton.textContent = '¡Desbloqueado!';
+                botton.parentElement.href = '#'; // Cambiar href según sea necesario
+            } else {
+                // Calcular tiempo restante
+                const diferencia = desbloqueo - ahora;
+                const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+                const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
+                const segundos = Math.floor((diferencia % (1000 * 60)) / 1000);
+                
+                botton.textContent = `${dias}d ${horas}h ${minutos}m ${segundos}s`;
+            }
+        }
+        
+        // Actualizar inmediatamente y luego cada segundo
+        actualizarTemporizador();
+        setInterval(actualizarTemporizador, 1000);
+    </script>
 </html>
