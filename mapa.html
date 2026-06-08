@@ -3,7 +3,7 @@
 <head>
     <link rel="shortcut icon" href="bruja.ico">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="screen-orientation" content="landscape">
     <title>Mapa del Viaje - El Señor de los Anillos</title>
@@ -13,7 +13,8 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            overflow: hidden;
+            /* Permitir scroll si el usuario hace zoom */
+            overflow: auto; 
             user-select: none;
             -webkit-user-select: none;
             -webkit-touch-callout: none;
@@ -32,7 +33,7 @@
 
         .container {
             width: 100%;
-            max-width: 1200px; /* Ancho máximo adaptado a pantallas estándar */
+            max-width: 1200px;
             height: 100%;
             max-height: calc(100vh - 40px);
             display: flex;
@@ -48,23 +49,21 @@
             font-size: 2rem;
         }
 
-        /* 
-           SOLUCIÓN 1: El contenedor del mapa ahora escala conservando 
-           las proporciones reales de la imagen medieval (1024x640 => ratio 1.6)
-        */
         .map-container {
             position: relative;
             width: 100%;
             max-height: calc(100vh - 120px);
-            aspect-ratio: 1024 / 640; /* Mantiene la proporción exacta del mapa */
+            aspect-ratio: 1024 / 640; 
             background-image: url('Sprites/mapa.webp');
-            background-size: contain; /* Asegura que la imagen no se recorte */
+            background-size: contain; 
             background-repeat: no-repeat;
             background-position: center;
             border: 2px solid #d4a574;
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             background-color: rgba(0, 0, 0, 0.3);
+            /* Habilita contenedor de consultas si se quiere usar cqw en el futuro */
+            container-type: inline-size; 
         }
 
         svg {
@@ -92,7 +91,7 @@
             align-items: center;
             transform: translate(-50%, -50%);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.3s ease;
             z-index: 20;
         }
 
@@ -101,18 +100,20 @@
             pointer-events: none;
         }
 
+        /* SOLUCIÓN ESCALA: El tamaño del nodo ahora se basa en el ancho de pantalla (vw).
+           Se definen límites con min() y max() para que no crezca o encoja infinitamente.
+        */
         .node-circle {
-            width: 55px;
-            height: 55px;
+            width: max(30px, min(4.5vw, 55px));
+            height: max(30px, min(4.5vw, 55px));
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            border: 3px solid #d4a574;
+            border: calc(1px + 0.1vw) solid #d4a574;
             background: rgba(212, 165, 116, 0.2);
             transition: all 0.3s ease;
-            box-shadow: 0 0 20px rgba(212, 165, 116, 0.5);
+            box-shadow: 0 0 15px rgba(212, 165, 116, 0.5);
             overflow: hidden;
         }
 
@@ -125,19 +126,20 @@
 
         .node.discovered .node-circle {
             background: rgba(212, 165, 116, 0.8);
-            box-shadow: 0 0 30px rgba(212, 165, 116, 1);
+            box-shadow: 0 0 25px rgba(212, 165, 116, 1);
         }
 
+        /* Texto proporcional al tamaño de la pantalla */
         .node-label {
-            margin-top: 6px;
+            margin-top: 0.5vw;
             text-align: center;
-            font-size: 12px;
+            font-size: max(9px, min(1vw, 12px));
             font-weight: bold;
-            white-space: nowrap; /* Evita que el texto se rompa de forma fea */
+            white-space: nowrap; 
             text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
             color: #fff;
-            background: rgba(0, 0, 0, 0.6); /* Fondo sutil para mejorar legibilidad */
-            padding: 2px 6px;
+            background: rgba(0, 0, 0, 0.6); 
+            padding: 0.2vw 0.5vw;
             border-radius: 4px;
         }
 
@@ -145,8 +147,11 @@
             transform: scale(1.15);
         }
 
+        /* Ajuste de escala para las nubes de bloqueo */
         .cloud {
             position: absolute;
+            width: max(40px, min(6vw, 80px));
+            height: auto;
             opacity: 0.95;
             transition: opacity 0.3s ease;
             filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));
@@ -191,12 +196,13 @@
             50% { transform: rotate(90deg); }
         }
 
-        /* Optimización responsiva para pantallas pequeñas */
         @media (max-width: 768px) {
             body { padding: 5px; }
             h1 { font-size: 1.3rem; margin-bottom: 5px; }
-            .node-circle { width: 40px; height: 40px; }
-            .node-label { font-size: 10px; padding: 1px 4px; }
+            .map-container {
+                max-height: calc(100vh - 60px);
+                overflow: visible; /* Permite scroll interno si se amplía la imagen */
+            }
         }
     </style>
 </head>
@@ -215,31 +221,26 @@
     </div>
 
     <script>
-        /* 
-           SOLUCIÓN 2: Las coordenadas 'x' e 'y' ahora representan PORCENTAJES (0-100) 
-           calculados sobre el tamaño base del lienzo del mapa original (1024x640).
-           Fórmula utilizada: (píxel_actual / tamaño_base) * 100
-        */
         const nodos = {
             comillo: {
                 nombre: 'La Comarca',
-                x: 30.43, // (240/1024)*100
-                y: 25.56,  // (10/640)*100
+                x: 30.43, 
+                y: 25.56,  
                 emoji: '🏡',
                 img: 'Sprites/insignias/Comarca.png',
                 descubierto: true
             },
             bree: {
                 nombre: 'Bree',
-                x: 37.25, // (320/1024)*100
-                y: 25.12,  // (20/640)*100
+                x: 37.25, 
+                y: 25.12,  
                 emoji: '🏘️',
                 img: 'Sprites/insignias/Bree.png',
                 descubierto: true
             },
             Bruinen: {
                 nombre: 'Bruinen',
-                x: 43.00, // Ajustado sutilmente para coincidir con el mapa real
+                x: 43.00, 
                 y: 25.00,
                 emoji: '🏰',
                 img: 'Sprites/insignias/Bruinen.png',
@@ -320,7 +321,6 @@
                 nodeEl.className = `node ${nodo.descubierto ? 'discovered' : 'undiscovered'}`;
                 nodeEl.id = `node-${id}`;
                 
-                // SOLUCIÓN 3: Posicionamiento dinámico usando porcentaje (%)
                 nodeEl.style.left = nodo.x + '%';
                 nodeEl.style.top = nodo.y + '%';
                 
@@ -328,7 +328,7 @@
                     <div class="node-circle">
                         ${nodo.img ? `<img src="${nodo.img}" alt="${nodo.nombre}"/>` : nodo.emoji}
                     </div>
-                    <svg class="cloud" width="80" height="60" viewBox="0 0 80 60">
+                    <svg class="cloud" viewBox="0 0 80 60">
                         <path d="M 20 40 Q 10 40 10 30 Q 10 15 20 15 Q 25 5 35 5 Q 50 5 55 20 Q 70 20 70 30 Q 70 40 60 40 Z" fill="rgba(100, 100, 100, 0.9)"/>
                     </svg>
                     <div class="node-label">${nodo.nombre}</div>
@@ -376,20 +376,6 @@
         window.addEventListener('orientationchange', checkOrientation);
         window.addEventListener('resize', checkOrientation);
         checkOrientation();
-
-        document.addEventListener('fullscreenchange', () => {
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(err => {
-                    console.log('Landscape lock:', err);
-                });
-            }
-        });
-
-        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            document.documentElement.requestFullscreen?.().catch(err => {
-                console.log('Fullscreen no disponible:', err);
-            });
-        }
     </script>
 </body>
 </html>
