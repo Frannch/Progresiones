@@ -90,6 +90,12 @@
             background-color: #4CAF50;
             z-index: -1;
         }
+        .button.green.unlocked::before {
+            background-image: url('Sprites/anillio.png');
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.6);
+        }
         .button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -111,7 +117,7 @@
     <div class="container">
         
         <a href="Banco.html"><button class="button red">Banco</button></a>
-        <a href=""><button class="button green" id="unblockBtn" disabled>Mapa</button></a>
+        <a href="mapa.html"><button class="button green" id="unblockBtn" disabled>Mapa</button></a>
         <a href="inicio.html"><button class="button blue">Tarjetas de Progesión</button></a>
     </div>
 
@@ -125,8 +131,10 @@
                 // La fecha ha llegado, desbloquear el botón
                 botton.disabled = false;
                 botton.textContent = 'Mapa';
+                botton.classList.add('unlocked');
                // Cambiar href según sea necesario
             } else {
+                botton.classList.remove('unlocked');
                 // Calcular tiempo restante
                 const diferencia = desbloqueo - ahora;
                 const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
