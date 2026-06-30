@@ -1,6 +1,4 @@
 const TEAM_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSq-xwYUHeI87hnaBdGwnLdBBpRmXtGCgHGDFz-qd1dlr7NFwY0OGIUzN4S84KuXIvojoN6LmhTfUA4/pub?output=csv';
-const TEAM_SELECTION_STORAGE_KEY = 'progresiones.teamSelection.v1';
-const TEAM_CACHE_STORAGE_KEY = 'progresiones.teamFdCache.v1';
 
 const LOGIN_TARGETS = {
   '19e639b064bdb018bbf393d0f751e6e5e9934f70394531ab3f617513529ab264': {
@@ -116,30 +114,7 @@ function buildTeamMap(csvText) {
   return teamMap;
 }
 
-function readJsonFromStorage(storageKey) {
-  try {
-    const rawValue = localStorage.getItem(storageKey);
-    return rawValue ? JSON.parse(rawValue) : null;
-  } catch (_error) {
-    return null;
-  }
-}
-
-function writeJsonToStorage(storageKey, value) {
-  try {
-    localStorage.setItem(storageKey, JSON.stringify(value));
-  } catch (_error) {
-    return;
-  }
-}
-
 async function loadTeamMap() {
-  const cached = readJsonFromStorage(TEAM_CACHE_STORAGE_KEY);
-
-  if (cached && typeof cached === 'object' && cached.map) {
-    return cached.map;
-  }
-
   const response = await fetch(TEAM_CSV_URL, { cache: 'no-store' });
 
   if (!response.ok) {
@@ -147,42 +122,12 @@ async function loadTeamMap() {
   }
 
   const csvText = await response.text();
-  const teamMap = buildTeamMap(csvText);
-
-  writeJsonToStorage(TEAM_CACHE_STORAGE_KEY, {
-    map: teamMap,
-    updatedAt: Date.now()
-  });
-
-  return teamMap;
-}
-
-function getCachedSelection(teamKey) {
-  const selection = readJsonFromStorage(TEAM_SELECTION_STORAGE_KEY);
-
-  if (!selection || typeof selection !== 'object') {
-    return null;
-  }
-
-  if (normalizeText(selection.teamKey) !== teamKey) {
-    return null;
-  }
-
-  return selection;
-}
-
-function saveSelection(selection) {
-  writeJsonToStorage(TEAM_SELECTION_STORAGE_KEY, selection);
+  return buildTeamMap(csvText);
 }
 
 async function resolveTeamFd(teamKey, providedFd) {
   if (providedFd) {
     return providedFd;
-  }
-
-  const cachedSelection = getCachedSelection(teamKey);
-  if (cachedSelection && cachedSelection.fd) {
-    return cachedSelection.fd;
   }
 
   const teamMap = await loadTeamMap();
@@ -231,10 +176,6 @@ async function initWalletPage() {
       saldoVisible = !saldoVisible;
     });
 
-    saveSelection({
-      teamKey,
-      fd: saldoReal
-    });
   } catch (_error) {
     balanceEl.textContent = 'Sin dato';
     toggleBtn.textContent = 'Mostrar Saldo';
@@ -263,11 +204,6 @@ async function initLoginPage() {
     try {
       const teamMap = await loadTeamMap();
       const fdValue = teamMap[target.teamKey] || '';
-
-      saveSelection({
-        teamKey: target.teamKey,
-        fd: fdValue
-      });
 
       const redirectUrl = new URL(target.page, window.location.href);
       redirectUrl.searchParams.set('team', target.teamKey);
