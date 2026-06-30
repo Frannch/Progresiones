@@ -104,8 +104,8 @@
            Se definen límites con min() y max() para que no crezca o encoja infinitamente.
         */
         .node-circle {
-            width: max(30px, min(4.5vw, 55px));
-            height: max(30px, min(4.5vw, 55px));
+            width: max(26px, min(4vw, 48px));
+            height: max(26px, min(4vw, 48px));
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -133,7 +133,7 @@
         .node-label {
             margin-top: 0.5vw;
             text-align: center;
-            font-size: max(9px, min(1vw, 12px));
+            font-size: max(8px, min(0.9vw, 11px));
             font-weight: bold;
             white-space: nowrap; 
             text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
@@ -150,7 +150,7 @@
         /* Ajuste de escala para las nubes de bloqueo */
         .cloud {
             position: absolute;
-            width: max(40px, min(6vw, 80px));
+            width: max(34px, min(5vw, 70px));
             height: auto;
             opacity: 0.95;
             transition: opacity 0.3s ease;
@@ -199,9 +199,53 @@
         @media (max-width: 768px) {
             body { padding: 5px; }
             h1 { font-size: 1.3rem; margin-bottom: 5px; }
+            .container {
+                width: 100%;
+                max-width: none;
+            }
             .map-container {
+                width: 100vw;
+                max-width: none;
                 max-height: calc(100vh - 60px);
                 overflow: visible; /* Permite scroll interno si se amplía la imagen */
+            }
+        }
+
+        @media (max-width: 768px) and (orientation: portrait) {
+            body {
+                display: block;
+                padding: 0;
+                overflow: hidden;
+            }
+
+            .container {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100vh;
+                height: 100vw;
+                max-width: none;
+                max-height: none;
+                justify-content: flex-start;
+                align-items: stretch;
+                transform: rotate(90deg) translateY(-100vw);
+                transform-origin: top left;
+            }
+
+            h1 {
+                margin-bottom: 6px;
+            }
+
+            .map-container {
+                width: calc(100% - 10px);
+                max-width: none;
+                max-height: none;
+                aspect-ratio: 1024 / 640;
+                height: auto;
+            }
+
+            .orientation-warning {
+                display: none !important;
             }
         }
     </style>
@@ -370,6 +414,8 @@
                 } else {
                     warning.classList.remove('active');
                 }
+            } else {
+                warning.classList.remove('active');
             }
         }
 
