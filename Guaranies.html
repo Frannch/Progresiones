@@ -84,23 +84,6 @@
         
         <a href="index.html" class="back-btn">Volver al Inicio</a>
     </div>
-    
-    <script>
-        let saldoVisible = false;
-        const saldoReal = 200; // Cambia este valor para personalizar el saldo inicial
-        const balanceEl = document.getElementById('balance');
-        const toggleBtn = document.getElementById('toggleBtn');
-        
-        toggleBtn.addEventListener('click', function() {
-            if (saldoVisible) {
-                balanceEl.textContent = '----';
-                toggleBtn.textContent = 'Mostrar Saldo';
-            } else {
-                balanceEl.textContent = '$' + saldoReal;
-                toggleBtn.textContent = 'Ocultar Saldo';
-            }
-            saldoVisible = !saldoVisible;
-        });
-    </script>
+    <script src="banco-fd.js"></script>
 </body>
 </html>
