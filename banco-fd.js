@@ -115,7 +115,9 @@ function buildTeamMap(csvText) {
 }
 
 async function loadTeamMap() {
-  const response = await fetch(TEAM_CSV_URL, { cache: 'no-store' });
+  const separator = TEAM_CSV_URL.includes('?') ? '&' : '?';
+  const csvUrl = `${TEAM_CSV_URL}${separator}_ts=${Date.now()}`;
+  const response = await fetch(csvUrl, { cache: 'no-store' });
 
   if (!response.ok) {
     throw new Error('No se pudo leer el CSV del banco.');
@@ -125,11 +127,7 @@ async function loadTeamMap() {
   return buildTeamMap(csvText);
 }
 
-async function resolveTeamFd(teamKey, providedFd) {
-  if (providedFd) {
-    return providedFd;
-  }
-
+async function resolveTeamFd(teamKey) {
   const teamMap = await loadTeamMap();
   return teamMap[teamKey] || '';
 }
@@ -144,13 +142,12 @@ async function initWalletPage() {
 
   const params = new URLSearchParams(window.location.search);
   const teamKey = normalizeText(params.get('team') || getCurrentPageTeamKey());
-  const providedFd = String(params.get('fd') || '').trim();
 
   toggleBtn.disabled = true;
   balanceEl.textContent = 'Cargando...';
 
   try {
-    const saldoReal = await resolveTeamFd(teamKey, providedFd);
+    const saldoReal = await resolveTeamFd(teamKey);
 
     if (!saldoReal) {
       balanceEl.textContent = 'Sin dato';
@@ -207,10 +204,6 @@ async function initLoginPage() {
 
       const redirectUrl = new URL(target.page, window.location.href);
       redirectUrl.searchParams.set('team', target.teamKey);
-
-      if (fdValue) {
-        redirectUrl.searchParams.set('fd', fdValue);
-      }
 
       window.location.href = redirectUrl.toString();
     } catch (_error) {
