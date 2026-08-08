@@ -36,6 +36,39 @@ function getCurrentPageTeamKey() {
   return normalizeText(fileName.replace(/\.html$/i, ''));
 }
 
+const EXPENSES_BY_TEAM = {
+  tobas: [],
+  ranqueles: [],
+  querandies: [],
+  guaranies: [],
+  wichis: []
+};
+
+function renderExpenses(teamKey) {
+  const expensesList = document.getElementById('expensesList');
+
+  if (!expensesList) {
+    return;
+  }
+
+  const normalizedTeamKey = normalizeText(teamKey);
+  const expenses = EXPENSES_BY_TEAM[normalizedTeamKey] || EXPENSES_BY_TEAM.tobas;
+
+  if (!expenses || !expenses.length) {
+    expensesList.innerHTML = '<li class="expense-empty">Por ahora no hay gastos cargados.</li>';
+    return;
+  }
+
+  expensesList.innerHTML = expenses
+    .map((expense) => `
+      <li class="expense-item">
+        <span class="expense-name">${expense.title}</span>
+        <span class="expense-amount">$${expense.amount.toLocaleString('es-AR')}</span>
+      </li>
+    `)
+    .join('');
+}
+
 function parseCsv(text) {
   const rows = [];
   let row = [];
@@ -143,6 +176,7 @@ async function initWalletPage() {
   const params = new URLSearchParams(window.location.search);
   const teamKey = normalizeText(params.get('team') || getCurrentPageTeamKey());
 
+  renderExpenses(teamKey);
   toggleBtn.disabled = true;
   balanceEl.textContent = 'Cargando...';
 

@@ -59,6 +59,46 @@
         .back-btn:hover {
             background: #c82333;
         }
+        .expenses-section {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: left;
+        }
+        .expenses-section h2 {
+            margin: 0 0 12px;
+            font-size: 1.2rem;
+            color: #333;
+        }
+        .expenses-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 8px;
+        }
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .expense-name {
+            font-weight: 600;
+            color: #333;
+        }
+        .expense-amount {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .expense-empty {
+            color: #6c757d;
+            font-style: italic;
+        }
         @media (min-width: 768px) {
             .wallet-container {
                 max-width: 800px;
@@ -81,6 +121,13 @@
         <!-- Saldo -->
         <div class="balance" id="balance">----</div>
         <button id="toggleBtn">Mostrar Saldo</button>
+
+        <div class="expenses-section">
+            <h2>Compras</h2>
+            <ul id="expensesList" class="expenses-list">
+                <li class="expense-empty">Cargando gastos...</li>
+            </ul>
+        </div>
         
         <a href="index.html" class="back-btn">Volver al Inicio</a>
     </div>
